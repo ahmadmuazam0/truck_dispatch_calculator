@@ -224,3 +224,8 @@ The first build may also run automatically after the files are pushed to the `ma
 ### Note about Windows signing
 
 The generated installer will be unsigned unless you later add a Windows code-signing certificate. It can still be used for testing/private installation, but Windows SmartScreen may warn users about an unknown publisher.
+
+
+### Workflow fix
+
+The Windows workflow intentionally does not enable the `setup-node` npm cache, so a pre-existing `package-lock.json` is not required. The workflow runs `npm install` and builds normally.
