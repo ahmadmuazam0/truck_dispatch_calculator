@@ -1,21 +1,45 @@
 {
-  "name": "truck-load-calculator",
+  "name": "truck-dispatch-calculator",
   "version": "1.0.0",
+  "description": "Truck load profitability calculator",
+  "main": "main.js",
+  "author": "Truck Dispatch Calculator",
+  "license": "UNLICENSED",
   "private": true,
-  "description": "Cross-platform Truck Load Profit Calculator",
   "scripts": {
-    "tauri": "tauri",
-    "desktop:dev": "tauri dev",
-    "desktop:build": "tauri build",
-    "android:init": "tauri android init",
-    "android:dev": "tauri android dev",
-    "android:apk": "tauri android build --apk",
-    "android:aab": "tauri android build --aab",
-    "ios:init": "tauri ios init",
-    "ios:dev": "tauri ios dev",
-    "ios:build": "tauri ios build"
+    "start": "electron .",
+    "dist:win": "electron-builder --win nsis --x64"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^2.11.4"
+    "electron": "44.4.3",
+    "electron-builder": "26.15.3"
+  },
+  "build": {
+    "appId": "com.truckdispatch.calculator",
+    "productName": "Truck Dispatch Calculator",
+    "asar": true,
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "app/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Truck Dispatch Calculator",
+      "artifactName": "Truck-Dispatch-Calculator-Setup-${version}.${ext}"
+    }
   }
 }

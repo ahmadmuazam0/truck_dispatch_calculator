@@ -3,11 +3,10 @@ name: Build Windows EXE
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
-  build-windows:
+  build:
     runs-on: windows-latest
     permissions:
       contents: read
@@ -21,36 +20,34 @@ jobs:
         with:
           node-version: 22
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
 
-      - name: Cache Rust
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: "./src-tauri -> target"
+      - name: Show versions
+        shell: powershell
+        run: |
+          node --version
+          npm --version
+          npx electron --version
+          npx electron-builder --version
 
-      - name: Install npm dependencies
-        run: npm install
+      - name: Build Windows installer
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: npm run dist:win
 
-      - name: Show Tauri environment
-        run: npm run tauri -- info
-
-      - name: Build Windows NSIS installer
-        run: npm run tauri -- build --bundles nsis --verbose
-
-      - name: Show generated files
+      - name: List build output
         if: always()
         shell: powershell
         run: |
-          Write-Host "Release output:"
-          if (Test-Path "src-tauri\target\release") {
-            Get-ChildItem "src-tauri\target\release" -Recurse -File | Select-Object FullName
+          if (Test-Path "dist") {
+            Get-ChildItem "dist" -Recurse -File | Select-Object FullName, Length
           }
 
-      - name: Upload Windows installer
+      - name: Upload Windows EXE
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: Truck-Load-Calculator-Windows-Installer
-          path: src-tauri/target/release/bundle/nsis/*.exe
+          name: Truck-Dispatch-Calculator-Windows
+          path: dist/*.exe
           if-no-files-found: error
