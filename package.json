@@ -8,37 +8,35 @@
   "private": true,
   "scripts": {
     "start": "electron .",
-    "dist:win": "electron-builder --win nsis --x64"
+    "build:win": "electron-builder --win nsis"
   },
   "devDependencies": {
-    "electron": "44.4.3",
-    "electron-builder": "26.15.3"
+    "electron": "^44.4.3",
+    "electron-builder": "^26.0.12"
   },
   "build": {
     "appId": "com.truckdispatch.calculator",
     "productName": "Truck Dispatch Calculator",
-    "asar": true,
-    "directories": {
-      "output": "dist"
-    },
     "files": [
       "main.js",
       "app/**/*"
     ],
+    "directories": {
+      "output": "dist"
+    },
     "win": {
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ]
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "shortcutName": "Truck Dispatch Calculator",
       "artifactName": "Truck-Dispatch-Calculator-Setup-${version}.${ext}"
     }
   }
