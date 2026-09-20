@@ -229,3 +229,25 @@ The generated installer will be unsigned unless you later add a Windows code-sig
 ### Workflow fix
 
 The Windows workflow intentionally does not enable the `setup-node` npm cache, so a pre-existing `package-lock.json` is not required. The workflow runs `npm install` and builds normally.
+
+
+---
+
+## Windows CI v2 — NSIS-only build
+
+This package intentionally builds **only the NSIS `.exe` installer first**.
+
+Why:
+- NSIS produces the normal Windows `-setup.exe`.
+- MSI uses WiX and can fail independently because of Windows VBSCRIPT/WiX validation on hosted runners.
+- Once the EXE build is stable, MSI can be added separately.
+
+The GitHub workflow now:
+1. installs Node dependencies,
+2. prints `tauri info`,
+3. runs Tauri directly with `--verbose`,
+4. uploads the generated `.exe`,
+5. prints the full release file tree if anything fails.
+
+After a successful run:
+**Actions → workflow run → Artifacts → Truck-Load-Calculator-Windows-Installer**

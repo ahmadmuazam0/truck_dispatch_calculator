@@ -1,4 +1,4 @@
-name: Build Windows App
+name: Build Windows EXE
 
 on:
   workflow_dispatch:
@@ -13,28 +13,44 @@ jobs:
       contents: read
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v7
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
-          node-version: lts/*
+          node-version: 22
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Cache Rust build
+      - name: Cache Rust
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: "./src-tauri -> target"
 
-      - name: Install frontend dependencies
+      - name: Install npm dependencies
         run: npm install
 
-      - name: Build Windows installer
-        uses: tauri-apps/tauri-action@v1
+      - name: Show Tauri environment
+        run: npm run tauri -- info
+
+      - name: Build Windows NSIS installer
+        run: npm run tauri -- build --bundles nsis --verbose
+
+      - name: Show generated files
+        if: always()
+        shell: powershell
+        run: |
+          Write-Host "Release output:"
+          if (Test-Path "src-tauri\target\release") {
+            Get-ChildItem "src-tauri\target\release" -Recurse -File | Select-Object FullName
+          }
+
+      - name: Upload Windows installer
+        if: success()
+        uses: actions/upload-artifact@v4
         with:
-          args: --bundles nsis,msi
-          uploadWorkflowArtifacts: true
-          workflowArtifactNamePattern: "Truck-Load-Calculator-[bundle]-[arch]"
+          name: Truck-Load-Calculator-Windows-Installer
+          path: src-tauri/target/release/bundle/nsis/*.exe
+          if-no-files-found: error
