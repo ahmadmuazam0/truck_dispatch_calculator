@@ -1,0 +1,21 @@
+{
+  "name": "truck-load-calculator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cross-platform Truck Load Profit Calculator",
+  "scripts": {
+    "tauri": "tauri",
+    "desktop:dev": "tauri dev",
+    "desktop:build": "tauri build",
+    "android:init": "tauri android init",
+    "android:dev": "tauri android dev",
+    "android:apk": "tauri android build --apk",
+    "android:aab": "tauri android build --aab",
+    "ios:init": "tauri ios init",
+    "ios:dev": "tauri ios dev",
+    "ios:build": "tauri ios build"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.11.4"
+  }
+}

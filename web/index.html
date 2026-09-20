@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Load Profit Calculator</title>
+<style>
+  :root{
+    --bg:#090b10;
+    --panel:#11141b;
+    --panel-2:#151922;
+    --line:#262c39;
+    --text:#f5f7fb;
+    --muted:#8b93a3;
+    --accent:#7c5cff;
+    --accent-2:#45d6c8;
+    --good:#4fe09d;
+    --bad:#ff647c;
+    --warn:#ffca6a;
+    --shadow:0 20px 70px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(124,92,255,.16), transparent 28%),
+      radial-gradient(circle at 90% 15%, rgba(69,214,200,.08), transparent 22%),
+      var(--bg);
+    color:var(--text);
+    font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    min-height:100vh;
+  }
+  .app{
+    width:min(1240px, calc(100% - 28px));
+    margin:28px auto;
+  }
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+    margin-bottom:22px;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+  .logo{
+    width:44px;height:44px;border-radius:14px;
+    display:grid;place-items:center;
+    background:linear-gradient(145deg,var(--accent),#4d31c8);
+    box-shadow:0 10px 35px rgba(124,92,255,.32);
+    font-weight:800;font-size:20px;
+  }
+  h1{font-size:22px;margin:0;letter-spacing:-.02em}
+  .sub{color:var(--muted);font-size:13px;margin-top:4px}
+  .status{
+    color:var(--accent-2);
+    border:1px solid rgba(69,214,200,.24);
+    background:rgba(69,214,200,.07);
+    padding:8px 12px;border-radius:999px;
+    font-size:12px;
+  }
+
+  .layout{
+    display:grid;
+    grid-template-columns: 1fr 1.22fr;
+    gap:18px;
+  }
+  .card{
+    background:linear-gradient(180deg,rgba(255,255,255,.025),rgba(255,255,255,.01)),var(--panel);
+    border:1px solid var(--line);
+    border-radius:22px;
+    box-shadow:var(--shadow);
+  }
+  .section{padding:22px}
+  .section-title{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:17px;
+  }
+  .section-title h2{font-size:14px;margin:0;letter-spacing:.02em}
+  .badge{
+    font-size:11px;color:var(--muted);
+    border:1px solid var(--line);padding:6px 9px;border-radius:999px;
+  }
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .field{display:flex;flex-direction:column;gap:7px}
+  .field label{font-size:12px;color:var(--muted)}
+  .input-wrap{
+    display:flex;align-items:center;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:13px;
+    overflow:hidden;
+    transition:.2s ease;
+  }
+  .input-wrap:focus-within{
+    border-color:rgba(124,92,255,.7);
+    box-shadow:0 0 0 3px rgba(124,92,255,.10);
+  }
+  input{
+    width:100%;background:transparent;border:0;outline:0;color:var(--text);
+    padding:13px 12px;font-size:15px;
+  }
+  .suffix{
+    padding-right:12px;color:var(--muted);font-size:12px;white-space:nowrap;
+  }
+  .toggle{
+    display:grid;grid-template-columns:1fr 1fr;
+    padding:4px;background:#0d1016;border:1px solid var(--line);
+    border-radius:12px;margin-bottom:14px;
+  }
+  .toggle button{
+    border:0;border-radius:9px;padding:10px;background:transparent;color:var(--muted);
+    cursor:pointer;font-weight:650;
+  }
+  .toggle button.active{
+    color:white;background:linear-gradient(135deg,rgba(124,92,255,.95),rgba(124,92,255,.7));
+  }
+  .divider{height:1px;background:var(--line);margin:20px 0}
+  .save-row{display:flex;gap:10px;margin-top:14px}
+  .btn{
+    border:0;cursor:pointer;border-radius:12px;padding:11px 14px;font-weight:700;
+  }
+  .btn-primary{background:var(--accent);color:white}
+  .btn-ghost{background:#171b24;color:#c7cbd4;border:1px solid var(--line)}
+  .hint{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5}
+
+  .hero{
+    padding:24px;
+    position:relative;
+    overflow:hidden;
+    border-bottom:1px solid var(--line);
+  }
+  .hero:before{
+    content:"";
+    position:absolute;inset:-120px auto auto 55%;
+    width:280px;height:280px;border-radius:50%;
+    background:rgba(124,92,255,.14);filter:blur(45px);
+  }
+  .hero-label{font-size:12px;color:var(--muted);position:relative}
+  .profit{
+    font-size:50px;font-weight:850;letter-spacing:-.04em;
+    margin:9px 0 10px;position:relative;
+  }
+  .profit.good{color:var(--good)}
+  .profit.bad{color:var(--bad)}
+  .hero-foot{display:flex;gap:12px;flex-wrap:wrap;position:relative}
+  .chip{
+    border:1px solid var(--line);background:rgba(255,255,255,.025);
+    color:#c8ced8;border-radius:999px;padding:7px 10px;font-size:11px;
+  }
+
+  .dash{
+    padding:22px;
+  }
+  .results{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:12px;
+  }
+  .metric{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:18px;padding:16px;
+    min-height:118px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+  }
+  .metric .k{font-size:11px;color:var(--muted);margin-bottom:10px;letter-spacing:.05em}
+  .metric .v{font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1.15}
+  .metric .s{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.4}
+  .metric.highlight{
+    background:linear-gradient(145deg,rgba(124,92,255,.16),rgba(124,92,255,.05));
+    border-color:rgba(124,92,255,.38);
+  }
+  .metric.green{
+    background:linear-gradient(145deg,rgba(79,224,157,.11),rgba(79,224,157,.03));
+    border-color:rgba(79,224,157,.27);
+  }
+  .metric.teal{
+    background:linear-gradient(145deg,rgba(69,214,200,.11),rgba(69,214,200,.03));
+    border-color:rgba(69,214,200,.25);
+  }
+  .metric.wide{
+    grid-column:span 3;
+  }
+  .bar{
+    height:8px;border-radius:999px;background:#0d1016;overflow:hidden;margin-top:14px;
+    border:1px solid #202530;
+  }
+  .bar > div{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));width:0%}
+  .footer-note{
+    color:var(--muted);font-size:11px;line-height:1.55;padding-top:16px;
+  }
+
+  @media(max-width:980px){
+    .layout{grid-template-columns:1fr}
+  }
+  @media(max-width:760px){
+    .results{grid-template-columns:1fr 1fr}
+    .metric.wide{grid-column:span 2}
+  }
+  @media(max-width:520px){
+    .app{width:min(100% - 18px,1240px);margin:12px auto}
+    .grid-2,.results{grid-template-columns:1fr}
+    .metric.wide{grid-column:auto}
+    .topbar{align-items:flex-start}
+    .status{display:none}
+    .profit{font-size:42px}
+  }
+
+  .install-btn{
+    border:1px solid var(--line);
+    background:#171b24;
+    color:#d7dbe4;
+    border-radius:999px;
+    padding:8px 12px;
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+    display:none;
+  }
+
+
+  .dash{
+    padding:22px;
+  }
+  .summary-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:14px;
+    margin-bottom:14px;
+  }
+  .summary-card{
+    border-radius:20px;
+    padding:18px;
+    min-height:132px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    border:1px solid var(--line);
+    background:var(--panel-2);
+  }
+  .summary-card .k{
+    font-size:11px;
+    letter-spacing:.06em;
+    color:var(--muted);
+  }
+  .summary-card .v{
+    font-size:28px;
+    font-weight:850;
+    letter-spacing:-.03em;
+    margin-top:8px;
+  }
+  .summary-card .s{
+    font-size:12px;
+    color:var(--muted);
+    margin-top:8px;
+    line-height:1.4;
+  }
+  .summary-card.primary{
+    background:linear-gradient(145deg,rgba(124,92,255,.2),rgba(124,92,255,.06));
+    border-color:rgba(124,92,255,.42);
+  }
+  .summary-card.good{
+    background:linear-gradient(145deg,rgba(79,224,157,.16),rgba(79,224,157,.04));
+    border-color:rgba(79,224,157,.32);
+  }
+  .summary-card.teal{
+    background:linear-gradient(145deg,rgba(69,214,200,.14),rgba(69,214,200,.04));
+    border-color:rgba(69,214,200,.28);
+  }
+
+  .board-section{
+    margin-top:16px;
+  }
+  .board-section-title{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:10px;
+  }
+  .board-section-title h3{
+    margin:0;
+    font-size:12px;
+    letter-spacing:.08em;
+    color:#c8ced8;
+  }
+  .board-section-title span{
+    font-size:11px;
+    color:var(--muted);
+  }
+
+  .cost-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+  }
+  .mini-card{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:14px;
+    min-height:108px;
+  }
+  .mini-card .k{
+    font-size:10px;
+    color:var(--muted);
+    letter-spacing:.06em;
+  }
+  .mini-card .v{
+    margin-top:10px;
+    font-size:21px;
+    font-weight:800;
+    letter-spacing:-.02em;
+  }
+  .mini-card .s{
+    margin-top:6px;
+    font-size:11px;
+    color:var(--muted);
+    line-height:1.35;
+  }
+
+  .trip-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:12px;
+  }
+  .trip-card{
+    background:#10131a;
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:15px;
+  }
+  .trip-card .k{
+    font-size:10px;
+    color:var(--muted);
+    letter-spacing:.06em;
+  }
+  .trip-card .v{
+    margin-top:9px;
+    font-size:22px;
+    font-weight:800;
+  }
+  .trip-card .s{
+    margin-top:6px;
+    font-size:11px;
+    color:var(--muted);
+  }
+
+  .decision-strip{
+    margin-top:14px;
+    border-radius:18px;
+    padding:16px;
+    background:linear-gradient(145deg,rgba(124,92,255,.12),rgba(69,214,200,.06));
+    border:1px solid rgba(124,92,255,.25);
+  }
+  .decision-strip-top{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:20px;
+    flex-wrap:wrap;
+  }
+  .decision-strip .k{
+    font-size:10px;
+    color:var(--muted);
+    letter-spacing:.06em;
+  }
+  .decision-strip .v{
+    font-size:22px;
+    font-weight:820;
+    margin-top:6px;
+  }
+  .decision-strip .s{
+    font-size:11px;
+    color:var(--muted);
+    margin-top:5px;
+  }
+
+  @media(max-width:1100px){
+    .cost-grid{grid-template-columns:1fr 1fr}
+  }
+  @media(max-width:760px){
+    .summary-grid,.trip-grid{grid-template-columns:1fr}
+    .cost-grid{grid-template-columns:1fr 1fr}
+  }
+  @media(max-width:520px){
+    .cost-grid{grid-template-columns:1fr}
+    .summary-card .v{font-size:25px}
+  }
+
+</style>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#090b10">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Load Profit">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">L</div>
+      <div>
+        <h1>Load Profit Calculator</h1>
+        <div class="sub">Fast truck load decision tool</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center"><button id="installBtn" class="install-btn">Install App</button><div class="status">LIVE CALCULATION</div></div>
+  </div>
+
+  <div class="layout">
+    <div class="card section">
+      <div class="section-title">
+        <h2>LOAD DETAILS</h2>
+        <span class="badge">Current Load</span>
+      </div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label>Deadhead Miles</label>
+          <div class="input-wrap"><input id="deadhead" type="number" inputmode="decimal" min="0" value="120"><span class="suffix">mi</span></div>
+        </div>
+        <div class="field">
+          <label>Loaded Miles</label>
+          <div class="input-wrap"><input id="loaded" type="number" inputmode="decimal" min="0" value="840"><span class="suffix">mi</span></div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="field">
+        <label>Broker Offer Type</label>
+        <div class="toggle">
+          <button id="perMileBtn" class="active">Per Mile</button>
+          <button id="flatBtn">Flat</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label id="offerLabel">Broker Offer</label>
+        <div class="input-wrap">
+          <span class="suffix" style="padding-left:12px;padding-right:0">$</span>
+          <input id="offer" type="number" inputmode="decimal" min="0" step="0.01" value="2.45">
+          <span class="suffix" id="offerSuffix">/ loaded mi</span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="section-title">
+        <h2>TRUCK DEFAULTS</h2>
+        <span class="badge">Save Once</span>
+      </div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label>Average Market Rate</label>
+          <div class="input-wrap"><span class="suffix" style="padding-left:12px;padding-right:0">$</span><input id="market" type="number" inputmode="decimal" step="0.01" value="2.60"><span class="suffix">/ mi</span></div>
+        </div>
+        <div class="field">
+          <label>Fuel Price</label>
+          <div class="input-wrap"><span class="suffix" style="padding-left:12px;padding-right:0">$</span><input id="fuel" type="number" inputmode="decimal" step="0.01" value="3.85"><span class="suffix">/ gal</span></div>
+        </div>
+        <div class="field">
+          <label>Truck Mileage</label>
+          <div class="input-wrap"><input id="mpg" type="number" inputmode="decimal" step="0.1" value="6.8"><span class="suffix">MPG</span></div>
+        </div>
+        <div class="field">
+          <label>Driver Percentage</label>
+          <div class="input-wrap"><input id="driverPct" type="number" inputmode="decimal" step="0.1" value="25"><span class="suffix">%</span></div>
+        </div>
+        <div class="field">
+          <label>Dispatcher Percentage</label>
+          <div class="input-wrap"><input id="dispatcherPct" type="number" inputmode="decimal" step="0.1" value="0"><span class="suffix">%</span></div>
+        </div>
+      </div>
+
+      <div class="save-row">
+        <button id="saveDefaults" class="btn btn-primary">Save Defaults</button>
+        <button id="resetDefaults" class="btn btn-ghost">Reset</button>
+      </div>
+      <div class="hint">Driver and dispatcher percentages are calculated from broker gross revenue. Total expense includes fuel + driver pay + dispatcher pay.</div>
+    </div>
+
+    <div class="card">
+      <div class="hero">
+        <div class="hero-label">ESTIMATED OWNER PROFIT</div>
+        <div id="profit" class="profit good">$0.00</div>
+        <div class="hero-foot">
+          <span id="decisionChip" class="chip">Calculating...</span>
+        </div>
+      </div>
+
+      <div class="dash">
+
+        <div class="summary-grid">
+          <div class="summary-card teal">
+            <div>
+              <div class="k">GROSS REVENUE</div>
+              <div id="grossRevenue" class="v">$0.00</div>
+            </div>
+            <div class="s">Total broker payout for this load</div>
+          </div>
+
+          <div class="summary-card">
+            <div>
+              <div class="k">CURRENT EFFECTIVE RATE</div>
+              <div id="currentEffectivePerMile" class="v">$0.00/mi</div>
+            </div>
+            <div class="s">Gross revenue across all miles</div>
+          </div>
+
+          <div class="summary-card primary">
+            <div>
+              <div class="k" id="recommendedTitle">MINIMUM RECOMMENDED RATE</div>
+              <div id="recommended" class="v">$0.00/mi</div>
+            </div>
+            <div class="s">Target rate after including deadhead</div>
+          </div>
+        </div>
+
+        <div class="board-section">
+          <div class="board-section-title">
+            <h3>COST BREAKDOWN</h3>
+            <span>What this load costs you</span>
+          </div>
+
+          <div class="cost-grid">
+            <div class="mini-card">
+              <div class="k">DRIVER PAY</div>
+              <div id="driverPay" class="v">$0.00</div>
+              <div id="driverMeta" class="s">0% of gross</div>
+            </div>
+
+            <div class="mini-card">
+              <div class="k">DISPATCHER PAY</div>
+              <div id="dispatcherPay" class="v">$0.00</div>
+              <div id="dispatcherMeta" class="s">0% of gross</div>
+            </div>
+
+            <div class="mini-card">
+              <div class="k">FUEL CONSUMED</div>
+              <div id="fuelGallonsBig" class="v">0.0 gal</div>
+              <div id="fuelBurnMeta" class="s">Based on MPG and trip miles</div>
+            </div>
+
+            <div class="mini-card">
+              <div class="k">FUEL EXPENSE</div>
+              <div id="fuelExpense" class="v">$0.00</div>
+              <div id="fuelGallons" class="s">0 gal × $0.00/gal</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="board-section">
+          <div class="board-section-title">
+            <h3>TRIP SUMMARY</h3>
+            <span>Final load economics</span>
+          </div>
+
+          <div class="trip-grid">
+            <div class="trip-card">
+              <div class="k">TOTAL EXPENSE</div>
+              <div id="expense" class="v">$0.00</div>
+              <div class="s">Fuel + driver + dispatcher</div>
+            </div>
+
+            <div class="trip-card">
+              <div class="k">TOTAL MILEAGE</div>
+              <div id="totalMiles" class="v">0 mi</div>
+              <div id="mileSplit" class="s">0 deadhead + 0 loaded</div>
+            </div>
+
+            <div class="summary-card good">
+              <div>
+                <div class="k">OWNER PROFIT</div>
+                <div id="ownerProfitBlock" class="v">$0.00</div>
+              </div>
+              <div class="s">Gross revenue minus total expense</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="decision-strip">
+          <div class="decision-strip-top">
+            <div>
+              <div class="k">OFFER VS MARKET-ADJUSTED TARGET</div>
+              <div id="offerGap" class="v">$0.00</div>
+              <div id="offerGapMeta" class="s">Difference versus recommendation</div>
+            </div>
+            <div style="min-width:180px;flex:1;max-width:300px">
+              <div class="bar"><div id="gapBar"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-note">
+          Recommended target uses the saved average market rate across all miles, then converts it back into the broker's offer format. This keeps deadhead miles visible instead of treating them as free mileage.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let offerMode = 'perMile';
+
+const $ = id => document.getElementById(id);
+const ids = ['deadhead','loaded','offer','market','fuel','mpg','driverPct','dispatcherPct'];
+
+function n(id){ return Math.max(0, parseFloat($(id).value) || 0); }
+function money(v){ return '$' + v.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function rate(v){ return '$' + v.toFixed(2) + '/mi'; }
+
+function calculate(){
+  const deadhead = n('deadhead');
+  const loaded = n('loaded');
+  const offer = n('offer');
+  const market = n('market');
+  const fuel = n('fuel');
+  const mpg = n('mpg');
+  const driverPct = n('driverPct');
+  const dispatcherPct = n('dispatcherPct');
+
+  const totalMiles = deadhead + loaded;
+
+  // Broker gross revenue:
+  // Per-mile offer is assumed to be paid on loaded miles only.
+  const gross = offerMode === 'perMile' ? offer * loaded : offer;
+
+  // True/current effective rate includes deadhead.
+  const currentEffectiveRate = totalMiles > 0 ? gross / totalMiles : 0;
+
+  // Fuel.
+  const gallons = mpg > 0 ? totalMiles / mpg : 0;
+  const fuelCost = gallons * fuel;
+
+  // Driver, dispatcher, and owner.
+  const driverPay = gross * (driverPct / 100);
+  const dispatcherPay = gross * (dispatcherPct / 100);
+  const totalExpense = fuelCost + driverPay + dispatcherPay;
+  const ownerProfit = gross - totalExpense;
+
+  // Market-adjusted recommendation.
+  // Market rate is treated as desired revenue per ALL miles.
+  const recommendedFlat = market * totalMiles;
+  const recommendedPerLoadedMile = loaded > 0 ? recommendedFlat / loaded : 0;
+  const recommended = offerMode === 'perMile'
+    ? recommendedPerLoadedMile
+    : recommendedFlat;
+
+  const gap = offerMode === 'perMile'
+    ? offer - recommendedPerLoadedMile
+    : offer - recommendedFlat;
+
+  // Dashboard
+  $('grossRevenue').textContent = money(gross);
+  $('currentEffectivePerMile').textContent = rate(currentEffectiveRate);
+
+  $('recommendedTitle').textContent = offerMode === 'perMile'
+    ? 'MINIMUM RECOMMENDED RATE'
+    : 'MINIMUM RECOMMENDED FLAT RATE';
+  $('recommended').textContent = offerMode === 'perMile'
+    ? rate(recommended)
+    : money(recommended);
+
+  $('driverPay').textContent = money(driverPay);
+  $('driverMeta').textContent = driverPct.toFixed(1) + '% of gross';
+
+  $('dispatcherPay').textContent = money(dispatcherPay);
+  $('dispatcherMeta').textContent = dispatcherPct.toFixed(1) + '% of gross';
+
+  $('fuelGallonsBig').textContent = gallons.toFixed(1) + ' gal';
+  $('fuelBurnMeta').textContent =
+    totalMiles.toLocaleString() + ' mi ÷ ' +
+    (mpg > 0 ? mpg.toFixed(1) : '0.0') + ' MPG';
+
+  $('fuelExpense').textContent = money(fuelCost);
+  $('fuelGallons').textContent =
+    gallons.toFixed(1) + ' gal × ' + money(fuel) + '/gal';
+
+  $('expense').textContent = money(totalExpense);
+
+  $('totalMiles').textContent = totalMiles.toLocaleString() + ' mi';
+  $('mileSplit').textContent =
+    deadhead.toLocaleString() + ' deadhead + ' +
+    loaded.toLocaleString() + ' loaded';
+
+  $('ownerProfitBlock').textContent = money(ownerProfit);
+  $('ownerProfitBlock').style.color =
+    ownerProfit >= 0 ? 'var(--good)' : 'var(--bad)';
+
+  // Main hero result.
+  $('profit').textContent = money(ownerProfit);
+  $('profit').className = 'profit ' + (ownerProfit >= 0 ? 'good' : 'bad');
+
+  // Bottom comparison.
+  const gapText = offerMode === 'perMile'
+    ? ((gap >= 0 ? '+' : '') + '$' + gap.toFixed(2) + '/mi')
+    : ((gap >= 0 ? '+' : '-') + money(Math.abs(gap)));
+
+  $('offerGap').textContent = gapText;
+  $('offerGap').style.color = gap >= 0 ? 'var(--good)' : 'var(--bad)';
+  $('offerGapMeta').textContent = offerMode === 'perMile'
+    ? 'Broker loaded-mile rate compared with minimum recommended rate'
+    : 'Broker flat offer compared with minimum recommended flat rate';
+
+  const recommendationBasis = offerMode === 'perMile'
+    ? recommendedPerLoadedMile
+    : recommendedFlat;
+
+  const ratio = recommendationBasis > 0 ? offer / recommendationBasis : 0;
+  $('gapBar').style.width =
+    Math.max(0, Math.min(100, ratio * 100)) + '%';
+
+  if (gap >= 0) {
+    $('decisionChip').textContent = 'At / Above Market Target';
+    $('decisionChip').style.color = 'var(--good)';
+  } else {
+    $('decisionChip').textContent = 'Below Market Target';
+    $('decisionChip').style.color = 'var(--warn)';
+  }
+}
+
+function setMode(mode){
+  offerMode = mode;
+  $('perMileBtn').classList.toggle('active', mode === 'perMile');
+  $('flatBtn').classList.toggle('active', mode === 'flat');
+  $('offerSuffix').textContent = mode === 'perMile' ? '/ loaded mi' : 'flat';
+  if(mode === 'perMile'){
+    if(n('offer') > 20) $('offer').value = '2.45';
+  } else {
+    if(n('offer') < 20) $('offer').value = '2058';
+  }
+  calculate();
+}
+
+ids.forEach(id => $(id).addEventListener('input', calculate));
+$('perMileBtn').addEventListener('click',()=>setMode('perMile'));
+$('flatBtn').addEventListener('click',()=>setMode('flat'));
+
+$('saveDefaults').addEventListener('click',()=>{
+  const data = {
+    market:$('market').value,
+    fuel:$('fuel').value,
+    mpg:$('mpg').value,
+    driverPct:$('driverPct').value,
+    dispatcherPct:$('dispatcherPct').value
+  };
+  localStorage.setItem('truckCalcDefaults', JSON.stringify(data));
+  $('saveDefaults').textContent = 'Saved ✓';
+  setTimeout(()=>$('saveDefaults').textContent='Save Defaults',1200);
+});
+
+$('resetDefaults').addEventListener('click',()=>{
+  localStorage.removeItem('truckCalcDefaults');
+  $('market').value='2.60';
+  $('fuel').value='3.85';
+  $('mpg').value='6.8';
+  $('driverPct').value='25';
+  $('dispatcherPct').value='0';
+  calculate();
+});
+
+try{
+  const saved = JSON.parse(localStorage.getItem('truckCalcDefaults'));
+  if(saved){
+    ['market','fuel','mpg','driverPct','dispatcherPct'].forEach(k=>{
+      if(saved[k] !== undefined) $(k).value = saved[k];
+    });
+  }
+}catch(e){}
+
+calculate();
+</script>
+
+
+<script>
+let deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  const button = document.getElementById('installBtn');
+  if (button) button.style.display = 'inline-block';
+});
+
+window.addEventListener('appinstalled', () => {
+  const button = document.getElementById('installBtn');
+  if (button) button.style.display = 'none';
+  deferredInstallPrompt = null;
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const button = document.getElementById('installBtn');
+  if (!button) return;
+
+  button.addEventListener('click', async () => {
+    if (!deferredInstallPrompt) return;
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    button.style.display = 'none';
+  });
+});
+</script>
+
+<script>
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+</script>
+
+</body>
+</html>
